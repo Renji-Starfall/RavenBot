@@ -66,7 +66,7 @@ module.exports = {
 			const isAdmin = config.adminBot.includes(event.senderID);
 			if (!isAdmin)
 			{
-				message.reply("❌ You need to be an admin of the bot.");
+				message.reply("❌ Désoler mais seul Renji Starfall peut faire cela 😅.");
 			}
 			else 
 			{
