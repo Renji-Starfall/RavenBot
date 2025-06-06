@@ -12,14 +12,14 @@
 	"antiInbox": false,
 	"language": "en",
 	"notesLanguage": "change to your language with ISO 639-1 code, available languages: vi (Vietnamese), en (English)",
-	"nickNameBot": "Remplace par le nom de ton bot",
-	"prefix": "remplace tout ceci par un prefix, ex : . $ / - + ect",
+	"nickNameBot": "Renji bot",
+	"prefix": " ~ ",
 	"adminOnly": {
 		"enable": false,
 		"ignoreCommand": []
 	},
 	"adminBot": [
-		"Met to' Uid ici",
+		"61557674704673",
 		""
 	],
 	"whiteListMode": {
