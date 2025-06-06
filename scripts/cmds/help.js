@@ -24,23 +24,23 @@ module.exports = {
       help: `━ (remplace par le nom de ton Bot )𝗕𝗢𝗧 ━
 Flux (( img generation ))
 
-━━━ 𝗚𝗥𝗢𝗨𝗣 ━━━
+✨𝗚𝗥𝗢𝗨𝗣 
 antichangeinfobox, filteruser, kick, adduser, uid, adminonly, warn, tid, busy, count, unsend, setrole, setname, prefix, setalias
 
-━━━ 𝗙𝗨𝗡  ━━━
+✨𝗙𝗨𝗡 
 aov, balance, Avatar, guessnumber
 
-━━━ 𝗧𝗢𝗢𝗟𝗦 ━━━
+✨𝗧𝗢𝗢𝗟𝗦
 prompt, pinterest, uptime, translate, rmbg, 4k, callad
 
-━━━ 𝗠𝗘𝗗𝗜𝗔 ━━━
+✨𝗠𝗘𝗗𝗜𝗔 
 ytb, spotify, twixtor, video, dl
 
-━━━ 𝗥𝗔𝗡𝗞 ━━━
+✨𝗥𝗔𝗡𝗞 
 rank, rankup
 
-━━━ 𝗦𝗨𝗣𝗣𝗢𝗥𝗧 𝗕𝗢𝗫 ━━━
-❈ 𝙍𝙚𝙟𝙤𝙞𝙜𝙣𝙚𝙯 𝙡𝙖 𝙗𝙤𝙞𝙩𝙚 𝙙'𝙖𝙨𝙨𝙞𝙨𝙩𝙖𝙣𝙘𝙚 .𝙘𝙖𝙡𝙡𝙖𝙙 𝙥𝙤𝙪𝙧 𝙘𝙤𝙣𝙩𝙖𝙘𝙩𝙚𝙧 𝙡𝙚𝙨 𝙖𝙙𝙢𝙞𝙣𝙞𝙨𝙩𝙧𝙖𝙩𝙚𝙪𝙧𝙨.⇒ Total: 25 commands
+✨𝗦𝗨𝗣𝗣𝗢𝗥𝗧 𝗕𝗢𝗫 
+❈ 𝙍𝙚𝙟𝙤𝙞𝙜𝙣𝙚𝙯 𝙡𝙖 𝙗𝙤𝙞𝙩𝙚 𝙙'𝙖𝙨𝙨𝙞𝙨𝙩𝙖𝙣𝙘𝙚 #𝙘𝙖𝙡𝙡𝙖𝙙 𝙥𝙤𝙪𝙧 𝙘𝙤𝙣𝙩𝙖𝙘𝙩𝙚𝙧 𝙡𝙚𝙨 𝙖𝙙𝙢𝙞𝙣𝙞𝙨𝙩𝙧𝙖𝙩𝙚𝙪𝙧𝙨.⇒ Total: 25 commands
 ⇒ Utilise {pn} <cmd> pour obtenir plus d'informations sur une commande`,
       commandNotFound: "La commande \"%1\" n'existe pas.",
       getInfoCommand: "» Description : %2\n» Autres noms : %3\n» Autres noms dans votre groupe : %4\n» Version : %5\n» Rôle : %6\n» Temps par commande : %7s\n» Auteur : %8\n━━━  ❖  ━━━\n» Guide d'utilisation :\n%9\n━━━  ❖  ━━━\n» Remarques :\n• Le contenu à l'intérieur de <XXXXX> peut être modifié\n• Le contenu à l'intérieur de [a|b|c] est a ou b ou c",
