@@ -4,11 +4,15 @@ module.exports = {
 	config: {
 		name: "setavt",
 		aliases: ["changeavt", "setavatar"],
-		version: "1.3",
+		version: "1.2",
 		author: "NTKhang",
 		countDown: 5,
 		role: 2,
-		description: {
+		shortDescription: {
+			vi: "Đổi avatar bot",
+			en: "Change bot avatar"
+		},
+		longDescription: {
 			vi: "Đổi avatar bot",
 			en: "Change bot avatar"
 		},

@@ -1,7 +1,7 @@
 module.exports = {
   config: {
     name: "spam",
-    aurthor:"Renji Starfall",
+    aurthor:"kim/zed",// Convert By Goatbot Zed
      role: 2,
     shortDescription: " ",
     longDescription: "",
