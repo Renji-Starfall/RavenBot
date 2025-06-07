@@ -8,7 +8,7 @@ module.exports = {
 	config: {
 		name: "prefix",
 		version: "1.4",
-		author: "NTKhang",
+		author: "RENJI STARFALL",
 		countDown: 5,
 		role: 0,
 		shortDescription: "Thay đổi prefix của bot",
@@ -49,7 +49,7 @@ module.exports = {
 			confirmThisThread: "Please react to this message to confirm change prefix in your box chat",
 			successGlobal: "Changed prefix of system bot to: %1",
 			successThisThread: "Changed prefix in your group chat to: %1",
-			myPrefix: "𝗣𝗥𝗘𝗙𝗜𝗫 : ⇛ %2 ⇚\n 𝗧𝗮𝗽𝗲 %2help 𝗽𝗼𝘂𝗿 𝘃𝗼𝗶𝗿 𝘁𝗼𝘂𝘁𝗲 𝗹𝗲𝘀 𝗰𝗼𝗺𝗺𝗮𝗻𝗱𝗲𝘀 𝗱𝗶𝘀𝗽𝗼𝗻𝗶𝗯𝗹𝗲𝘀"
+			myPrefix: "👉 Voici mon prefix : %2 \n 👉 Tape %2help pour accéder a mes commandes. "
 		}
 	},
 
