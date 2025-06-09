@@ -60,7 +60,7 @@ module.exports = {
       msg += `${prefix}help <cmdName> to look up command info\n`;
       msg += `Any issue? Use ${prefix}callad\n`;
       msg += `Admin : 🎯☆🅁🄴🄽🄹🄸☆🅂🅃🄰🅁🄵🄰🄻🄻☆\n\n`;
-      msg += `☯︎ 𝐌𝐄𝐑𝐂𝐈☆𝐁𝐄𝐀𝐔𝐂𝐎𝐔𝐏 ☯︎\n`;
+      msg += `☯︎Ecrivez #renjigc pour rejoindre le groupe du bot☯︎\n`;
       msg += `M𝐚𝐝𝐞 𝐛𝐲 [🎯| 🅁🄴🄽🄹🄸☆🅂🅃🄰🅁🄵🄰🄻🄻]\n`;
       msg += `𝐅𝐛: ✰https://www.facebook.com/profile.php?id=61557674704673`;
 
