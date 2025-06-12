@@ -33,7 +33,7 @@ module.exports = {
 
     if (args.length === 0) {
       const categories = {};
-      let msg = "\n\n  ╞════♲︎︎︎𝗖𝗠𝗗𝗦_𝗟𝗜𝗦𝗧♲︎︎︎════╡";
+      let msg = "\n\n  ╞═══♲︎︎︎𝗖𝗠𝗗𝗦_𝗟𝗜𝗦𝗧♲︎︎︎═══╡";
 
       for (const [name, value] of commands) {
         if (value.config.role > 1 && role < value.config.role) continue;
@@ -45,7 +45,7 @@ module.exports = {
 
       Object.keys(categories).forEach((category) => {
         if (category !== "info") {
-          msg += `\n╭━━༺${category.toUpperCase()}༻━━\n━━𒁍`;
+          msg += `\n╭━━༺${category.toUpperCase()}༻━━𒁍`;
           const names = categories[category].commands.sort();
           for (let i = 0; i < names.length; i += 3) {
             const cmds = names.slice(i, i + 3).map((item) => `🔖${item}`);
