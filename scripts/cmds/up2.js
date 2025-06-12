@@ -1,78 +1,76 @@
-const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
+const os = require('os');
+const moment = require('moment-timezone');
 
 module.exports = {
-  config: {
-    name: "uptime",
-    aliases: ["up2"],
-    version: "1.0",
-    author: "Raphael", //Don't change Author 
-    role: 0,
-    shortDescription: {
-      en: "Displays the uptime of the bot."
+    config: {
+        name: "uptime",
+        aliases: ["upt", "up"],
+        version: "1.1",
+        author: "ミ★𝐒𝐎𝐍𝐈𝐂✄𝐄𝐗𝐄 3.0★彡", // Ne changez pas les crédits
+        role: 2,
+        shortDescription: {
+            en: "Displays bot uptime, system information, battery level, and current time in Cameroon."
+        },
+        longDescription: {
+            en: "Displays bot uptime, system information, CPU speed, storage usage, RAM usage, battery level, and current time in Cameroon."
+        },
+        category: "system",
+        guide: {
+            en: "Use {p}uptime to display bot uptime, system information, battery level, and current time in Cameroon."
+        }
     },
-    longDescription: {
-      en: "Displays the amount of time that the bot has been running for."
-    },
-    category: "utility",
-    guide: {
-      en: "Use {p}uptime to display the uptime of the bot."
+    onStart: async function ({ api, event, prefix }) {
+        try {
+            // Simuler un système de batterie pour le bot
+            const batteryLevel = Math.floor(Math.random() * 101); // Niveau de batterie aléatoire entre 0 et 100
+            const lowBatteryThreshold = 20; // Seuil critique pour la batterie
+
+            // Vérifier si la batterie est faible
+            const batteryStatus = batteryLevel <= lowBatteryThreshold
+                ? "⚠️ Batterie faible !"
+                : "✅ Batterie stable !";
+
+            // Obtenir les temps d'uptime du bot et du serveur
+            const botUptime = process.uptime();
+            const serverUptime = os.uptime();
+
+            // Formater le temps d'uptime du bot
+            const botDays = Math.floor(botUptime / 86400);
+            const botHours = Math.floor((botUptime % 86400) / 3600);
+            const botMinutes = Math.floor((botUptime % 3600) / 60);
+            const botSeconds = Math.floor(botUptime % 60);
+            const botUptimeString = `♡   ∩_∩\n（„• ֊ •„)♡\n╭∪∪─⌾Renji AIn│𝐍𝐚𝐦𝐞:➣ ✘.𝚂𝙾𝙽𝙸𝙲〈 な\n│𝐏𝐫𝐞𝐟𝐢𝐱 𝐒𝐲𝐬𝐭𝐞𝐦: ${prefix}\n╰─────────⌾
+╭─⌾⏰𝗨𝗣𝗧𝗜𝗠𝗘⏰\n│🎶✨${botDays} days✨🎶\n│🎶✨${botHours} hours✨🎶\n│🎶✨${botMinutes} min✨🎶\n│🎶✨${botSeconds} sec✨🎶\n╰───────⌾`;
+
+            // Formater le temps d'uptime du serveur
+            const serverDays = Math.floor(serverUptime / 86400);
+            const serverHours = Math.floor((serverUptime % 86400) / 3600);
+            const serverMinutes = Math.floor((serverUptime % 3600) / 60);
+            const serverSeconds = Math.floor(serverUptime % 60);
+            const serverUptimeString = `\n╭─⌾🚀| 𝗦𝗘𝗥𝗩𝗘𝗥 𝗨𝗣𝗧𝗜𝗠𝗘 \n│🔰✨${serverDays} days✨🔰\n│🔰✨${serverHours} hours✨🔰\n│🔰✨${serverMinutes} min✨🔰\n│🔰✨${serverSeconds} sec✨🔰\n╰───────⌾`;
+
+            // Obtenir l'utilisation de la mémoire et la vitesse CPU
+            const totalMem = os.totalmem() / (1024 * 1024 * 1024); // Convertir en Go
+            const freeMem = os.freemem() / (1024 * 1024 * 1024);   // Convertir en Go
+            const usedMem = totalMem - freeMem;
+            const cpuSpeed = os.cpus()[0].speed;
+
+            // Obtenir l'heure actuelle au Cameroun
+            const currentTime = moment.tz("Africa/Douala").format("YYYY-MM-DD HH:mm:ss");
+
+            // Construction du message de réponse
+            const responseMessage = `${botUptimeString}
+${serverUptimeString}
+╭─⌾💾|𝗦𝗧𝗢𝗥𝗔𝗚𝗘\n│CPU Speed: ${cpuSpeed} Ko/s\n│Total Memory: ${totalMem.toFixed(2)} GB\n│Used Memory: ${usedMem.toFixed(2)} GB\n│Free Memory: ${freeMem.toFixed(2)} GB\n╰───────⌾
+╭─⌾🔋𝗕𝗔𝗧𝗧𝗘𝗥𝗬🔋\n│Battery Level: ${batteryLevel}%\n│Status: ${batteryStatus}\n╰───────⌾
+╭─⌾🕒 𝗧𝗜𝗠𝗘 🕒\n│${currentTime}\n╰───────⌾`;
+
+            // Envoyer le message de réponse
+            await api.sendMessage(responseMessage, event.threadID, event.messageID);
+
+        } catch (error) {
+            console.error("Error in uptime command:", error);
+            await api.sendMessage("❌ An error occurred while fetching uptime and battery information.", event.threadID, event.messageID);
+        }
     }
-  },
-  onStart: async function ({ api, event, args }) {
-    try {
-      // Calculate uptime
-      const uptime = process.uptime();
-      const secondsLeft = Math.floor(uptime % 60);
-      const minutes = Math.floor((uptime / 60) % 60);
-      const hours = Math.floor((uptime / (60 * 60)) % 24);
-      const days = Math.floor(uptime / (60 * 60 * 24));
-      const uptimeString = `${days} 𝙳𝚊𝚢𝚜 ${hours} 𝙷𝚘𝚞𝚛𝚜 ${minutes} 𝙼𝚒𝚗𝚞𝚝𝚎𝚜 ${secondsLeft} 𝚂𝚎𝚌𝚘𝚗𝚍𝚜`;
-
-      // Bot information
-      const botname = "  ZetBot"; // Replace with your actual bot name
-      const insta = "YazidDiz95"; // Replace with your Instagram handle
-      const github = "YazidGit"; // Replace with your GitHub handle
-      const fb = "Zetsu"; // Replace with your Facebook handle
-
-      // Prepare the API URL for image generation
-      const apiUrl = `https://deku-rest-api.gleeze.com/canvas/uptime?id=4&instag=${insta}&ghub=${github}&fb=${fb}&hours=${hours}&minutes=${minutes}&seconds=${secondsLeft}&botname=${botname}`;
-
-      
-      const tempDir = './temp';
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir);
-      }
-
-      const attachmentPath = path.join(tempDir, `uptime_${event.senderID}.png`);
-
-      // Fetch the image from the API
-      const response = await axios.get(apiUrl, { responseType: 'stream' });
-      const writer = fs.createWriteStream(attachmentPath);
-      response.data.pipe(writer);
-
-  
-      writer.on('finish', async () => {
-        const message = `𝗛𝗲𝗹𝗹𝗼 𝗠𝗮𝘀𝘁𝗲𝗿~ 🐼,\n\n 🫶 𝙔𝙤𝙪𝙧 𝙗𝙤𝙩 𝙞𝙨 𝙧𝙪𝙣𝙣𝙞𝙣𝙜 𝙛𝙧𝙤𝙢\n\n ${uptimeString}.`;
-
-        await api.sendMessage({
-          body: message,
-          attachment: fs.createReadStream(attachmentPath)
-        }, event.threadID, () => {
-          fs.unlinkSync(attachmentPath);
-        });
-      });
-
-      // Handle errors during the writing process
-      writer.on('error', (err) => {
-        console.error("Error writing the file:", err);
-        api.sendMessage("Unable to retrieve uptime image. Error: " + err.message, event.threadID);
-      });
-
-    } catch (error) {
-      console.error("Error in uptime command:", error);
-      api.sendMessage("Unable to display uptime information.", event.threadID);
-    }
-  }
 };
