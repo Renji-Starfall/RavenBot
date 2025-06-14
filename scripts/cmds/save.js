@@ -2,222 +2,225 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 
-const GITHUB_TOKEN = "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";
-const REPO_OWNER = "RavenBot";
-const REPO_NAME = "Renji-Starfall";
-const BRANCH = "main";
-const AUTO_SAVE_GROUP_ID = "9821500107945311";
+// Configuration avec tokens intégrés (RISQUE DE SÉCURITÉ)
+const CONFIG = {
+  GITHUB_TOKEN: "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", // Token GitHub
+  REPO_OWNER: "Renji-Starfall",
+  REPO_NAME: "RavenBot",
+  BRANCH: "main",
+  ADMIN_ID: "61557674704673", // Votre ID Messenger
+  ALLOWED_USERS: ["61557674704673"], // IDs autorisés
+  AUTO_SAVE_INTERVAL: 30 * 60 * 1000 // 30 minutes
+};
 
+// Récupération des fichiers JSON
 function getAllJsonFiles(dirPath, root = dirPath) {
   let results = [];
   const list = fs.readdirSync(dirPath);
 
   list.forEach(file => {
     const filePath = path.join(dirPath, file);
-    const stat = fs.statSync(filePath);
-
-    if (stat && stat.isDirectory()) {
-      results = results.concat(getAllJsonFiles(filePath, root));
-    } else if (file.endsWith(".json")) {
-      results.push({
-        fullPath: filePath,
-        relativePath: path.relative(root, filePath).replace(/\\/g, "/")
-      });
+    try {
+      const stat = fs.statSync(filePath);
+      if (stat.isDirectory()) {
+        results = results.concat(getAllJsonFiles(filePath, root));
+      } else if (file.endsWith(".json")) {
+        results.push({
+          fullPath: filePath,
+          relativePath: path.relative(root, filePath).replace(/\\/g, "/")
+        });
+      }
+    } catch (e) {
+      console.error(`Erreur lecture ${filePath}:`, e.message);
     }
   });
 
   return results;
 }
 
+// Sauvegarde sur GitHub
+async function saveToGitHub(filePath, content, commitMessage) {
+  const apiUrl = `https://api.github.com/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/contents/${filePath}`;
+  
+  try {
+    let sha;
+    try {
+      const { data } = await axios.get(apiUrl, {
+        headers: { Authorization: `token ${CONFIG.GITHUB_TOKEN}` }
+      });
+      sha = data.sha;
+    } catch (e) {
+      if (e.response?.status !== 404) throw e;
+    }
+
+    const encodedContent = Buffer.from(content).toString("base64");
+    
+    await axios.put(apiUrl, {
+      message: commitMessage,
+      content: encodedContent,
+      branch: CONFIG.BRANCH,
+      sha
+    }, {
+      headers: {
+        Authorization: `token ${CONFIG.GITHUB_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      timeout: 10000
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.response?.data?.message || error.message 
+    };
+  }
+}
+
 module.exports = {
   config: {
     name: "save",
-    version: "1.4",
+    version: "1.7",
     author: "JulioRaven",
-    description: "Enregistre une commande locale ou toutes les données JSON sur GitHub",
+    description: "Sauvegarde GitHub avec notifications privées",
+    role: 2
   },
 
-  async handleCommand({ message, event, args }) {
-    const permission = ["61557674704673"];
-    if (!permission.includes(event.senderID)) {
-      return message.reply("Tu n'as pas la permission d'utiliser cette commande.");
+  async handleCommand({ message, event, args, api }) {
+    if (!CONFIG.ALLOWED_USERS.includes(event.senderID)) {
+      return api.sendMessage("❌ Accès refusé.", event.threadID);
     }
 
     if (!args[0]) {
-      return message.reply("Spécifie le nom de la commande à enregistrer (sans extension) ou '-g' pour sauvegarder les données JSON.");
+      return api.sendMessage(
+        "ℹ️ Usage: save [nom_commande] ou save -g",
+        event.threadID
+      );
     }
 
+    // Sauvegarde globale
     if (args[0] === "-g") {
       const cmdsPath = path.join(__dirname, "..", "cmds");
+      await api.sendMessage("⏳ Sauvegarde en cours...", event.threadID);
 
-      let files;
       try {
-        files = getAllJsonFiles(cmdsPath);
-      } catch (e) {
-        return message.reply("Erreur lors de la lecture des fichiers JSON : " + e.message);
-      }
-
-      if (files.length === 0) {
-        return message.reply("Aucun fichier JSON trouvé.");
-      }
-
-      await message.reply("⏳ Sauvegarde automatique des données JSON en cours...");
-
-      const results = [];
-
-      for (const { fullPath, relativePath } of files) {
-        try {
-          const fileContent = fs.readFileSync(fullPath, "utf8");
-          const GITHUB_PATH = `scripts/cmds/${relativePath}`;
-          const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${GITHUB_PATH}`;
-
-          let sha;
-          try {
-            const { data } = await axios.get(apiUrl, {
-              headers: { Authorization: `token ${GITHUB_TOKEN}` }
-            });
-            sha = data.sha;
-          } catch {
-            sha = undefined;
-          }
-
-          const encodedContent = Buffer.from(fileContent).toString("base64");
-
-          await axios.put(apiUrl, {
-            message: `Mise à jour automatique de ${relativePath}`,
-            content: encodedContent,
-            branch: BRANCH,
-            sha
-          }, {
-            headers: {
-              Authorization: `token ${GITHUB_TOKEN}`,
-              "Content-Type": "application/json"
-            }
-          });
-
-          results.push(`✅ ${relativePath}`);
-        } catch (err) {
-          results.push(`❌ ${relativePath} - ${err.response?.data?.message || err.message}`);
+        const files = getAllJsonFiles(cmdsPath);
+        if (files.length === 0) {
+          return api.sendMessage("ℹ️ Aucun fichier trouvé.", event.threadID);
         }
+
+        const results = [];
+        for (const { fullPath, relativePath } of files) {
+          try {
+            const content = fs.readFileSync(fullPath, "utf8");
+            const { success, error } = await saveToGitHub(
+              `scripts/cmds/${relativePath}`,
+              content,
+              `Auto-save: ${relativePath}`
+            );
+            results.push(success ? `✅ ${relativePath}` : `❌ ${relativePath} - ${error}`);
+          } catch (e) {
+            results.push(`❌ ${relativePath} - ${e.message}`);
+          }
+        }
+
+        await api.sendMessage(
+          `📦 Résultats :\n\n${results.join("\n")}`,
+          CONFIG.ADMIN_ID
+        );
+        return api.sendMessage("✅ Notification envoyée en privé.", event.threadID);
+
+      } catch (e) {
+        await api.sendMessage(
+          `❌ Erreur globale: ${e.message}`,
+          CONFIG.ADMIN_ID
+        );
+        return api.sendMessage("❌ Erreur - Voir privé.", event.threadID);
       }
-
-      await message.reply(`🔄|𝗦𝗔𝗨𝗩𝗘𝗚𝗔𝗥𝗗𝗘 𝗔𝗨𝗧𝗢𝗠𝗔𝗧𝗜𝗤𝗨𝗘 𝗔𝗖𝗛𝗘𝗩É𝗘 ✅\n\n${results.join("\n")}`);
-
-      try {
-        message.client.sendMessage(AUTO_SAVE_GROUP_ID, "🔄|𝗦𝗔𝗨𝗩𝗘𝗚𝗔𝗥𝗗𝗘 𝗔𝗨𝗧𝗢𝗠𝗔𝗧𝗜𝗤𝗨𝗘 𝗔𝗖𝗛𝗘𝗩É𝗘 ✅");
-      } catch {}
-
-      return;
     }
 
-    // Sauvegarde d'une commande JS spécifique
+    // Sauvegarde unitaire
     const fileName = args[0].endsWith(".js") ? args[0] : `${args[0]}.js`;
     const filePath = path.join(__dirname, "..", "cmds", fileName);
 
     if (!fs.existsSync(filePath)) {
-      return message.reply("❌ Fichier introuvable dans le dossier cmds.");
+      return api.sendMessage(`❌ Fichier ${fileName} introuvable.`, event.threadID);
     }
 
-    await message.reply("⏳ Enregistrement de la commande en cours...");
-
-    const fileContent = fs.readFileSync(filePath, "utf8");
-    const GITHUB_PATH = `scripts/cmds/${fileName}`;
-    const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${GITHUB_PATH}`;
+    await api.sendMessage(`⏳ Sauvegarde de ${fileName}...`, event.threadID);
 
     try {
-      let sha;
-      try {
-        const { data } = await axios.get(apiUrl, {
-          headers: { Authorization: `token ${GITHUB_TOKEN}` }
-        });
-        sha = data.sha;
-      } catch {
-        sha = undefined;
+      const content = fs.readFileSync(filePath, "utf8");
+      const { success, error } = await saveToGitHub(
+        `scripts/cmds/${fileName}`,
+        content,
+        `Ajout de ${fileName}`
+      );
+
+      if (success) {
+        await api.sendMessage(
+          `✅ ${fileName} sauvegardé.`,
+          CONFIG.ADMIN_ID
+        );
+        return api.sendMessage("✅ Succès - Notification envoyée.", event.threadID);
+      } else {
+        throw new Error(error);
       }
-
-      const encodedContent = Buffer.from(fileContent).toString("base64");
-
-      await axios.put(apiUrl, {
-        message: `Ajout automatique de ${fileName}`,
-        content: encodedContent,
-        branch: BRANCH,
-        sha
-      }, {
-        headers: {
-          Authorization: `token ${GITHUB_TOKEN}`,
-          "Content-Type": "application/json"
-        }
-      });
-
-      return message.reply(`✅ Commande \`${fileName}\` enregistrée sur GitHub dans \`scripts/cmds/\`.`);
-    } catch (error) {
-      return message.reply(`❌ Erreur GitHub : ${error.response?.data?.message || error.message}`);
+    } catch (e) {
+      await api.sendMessage(
+        `❌ Erreur sur ${fileName}: ${e.message}`,
+        CONFIG.ADMIN_ID
+      );
+      return api.sendMessage("❌ Échec - Voir privé.", event.threadID);
     }
   },
 
   onStart(params) {
     return this.handleCommand(params);
+  },
+
+  startAutoSave(api) {
+    if (this.interval) clearInterval(this.interval);
+    
+    this.interval = setInterval(async () => {
+      try {
+        const cmdsPath = path.join(__dirname, "..", "cmds");
+        const files = getAllJsonFiles(cmdsPath);
+        
+        if (files.length === 0) return;
+
+        console.log("⏳ Sauvegarde auto en cours...");
+        
+        for (const { fullPath, relativePath } of files) {
+          try {
+            const content = fs.readFileSync(fullPath, "utf8");
+            await saveToGitHub(
+              `scripts/cmds/${relativePath}`,
+              content,
+              `Auto-save: ${relativePath}`
+            );
+          } catch (e) {
+            console.error(`Erreur ${relativePath}:`, e.message);
+          }
+        }
+
+        await api.sendMessage(
+          `✅ Sauvegarde auto terminée à ${new Date().toLocaleString()}`,
+          CONFIG.ADMIN_ID
+        );
+        console.log("✅ Sauvegarde auto terminée");
+
+      } catch (e) {
+        console.error("Erreur sauvegarde auto:", e);
+        api.sendMessage(
+          `❌ Erreur sauvegarde auto: ${e.message}`,
+          CONFIG.ADMIN_ID
+        ).catch(console.error);
+      }
+    }, CONFIG.AUTO_SAVE_INTERVAL);
+  },
+
+  stopAutoSave() {
+    if (this.interval) clearInterval(this.interval);
   }
 };
-
-// === SAUVEGARDE AUTO TOUTES LES 30 MINUTES ===
-
-function autoSaveJsonFiles(client) {
-  const cmdsPath = path.join(__dirname, "..", "cmds");
-
-  setInterval(async () => {
-    try {
-      const files = getAllJsonFiles(cmdsPath);
-
-      if (files.length === 0) return;
-
-      const results = [];
-
-      for (const { fullPath, relativePath } of files) {
-        try {
-          const fileContent = fs.readFileSync(fullPath, "utf8");
-          const GITHUB_PATH = `scripts/cmds/${relativePath}`;
-          const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${GITHUB_PATH}`;
-
-          let sha;
-          try {
-            const { data } = await axios.get(apiUrl, {
-              headers: { Authorization: `token ${GITHUB_TOKEN}` }
-            });
-            sha = data.sha;
-          } catch {
-            sha = undefined;
-          }
-
-          const encodedContent = Buffer.from(fileContent).toString("base64");
-
-          await axios.put(apiUrl, {
-            message: `Mise à jour automatique de ${relativePath}`,
-            content: encodedContent,
-            branch: BRANCH,
-            sha
-          }, {
-            headers: {
-              Authorization: `token ${GITHUB_TOKEN}`,
-              "Content-Type": "application/json"
-            }
-          });
-
-          results.push(`✅ ${relativePath}`);
-        } catch (err) {
-          results.push(`❌ ${relativePath} - ${err.response?.data?.message || err.message}`);
-        }
-      }
-
-      console.log("🔄|SAUVEGARDE AUTOMATIQUE TERMINÉE ✅");
-
-      if (client && typeof client.sendMessage === "function") {
-        client.sendMessage(AUTO_SAVE_GROUP_ID, "🔄|𝗦𝗔𝗨𝗩𝗘𝗚𝗔𝗥𝗗𝗘 𝗔𝗨𝗧𝗢𝗠𝗔𝗧𝗜𝗤𝗨𝗘 𝗔𝗖𝗛𝗘𝗩E𝗘 ✅");
-      }
-    } catch (error) {
-      console.error("Erreur de sauvegarde automatique :", error);
-    }
-  }, 30 * 60 * 1000);
-}
-
-module.exports.autoSaveJsonFiles = autoSaveJsonFiles;
